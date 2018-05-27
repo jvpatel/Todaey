@@ -28,7 +28,7 @@ class ToDoListViewController: UITableViewController {
         //path to the documents folder, FileManager provides interface to filesystem, default filemanger is singleton
         //organized by directory and domain-mask (user home directory, where we'll save sustomer's data associated with this path)
         //create our own plist file
-        print(dataFilePath)
+        print(dataFilePath!)
         
         //searchBar.Delgate = self either do in code, or control-drag to the yellow icon, and select outlet as delegate
         
@@ -184,7 +184,7 @@ class ToDoListViewController: UITableViewController {
     
     //create before copy paste
     func saveItems(){
-        let encoder = PropertyListEncoder()
+        //let encoder = PropertyListEncoder()
         
         do {
             try context.save()

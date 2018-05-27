@@ -15,12 +15,12 @@ let defaults = UserDefaults.standard
 func foo() {
     //what stuff can we set in defaults
     defaults.set(0.24, forKey: "Volume") //volume you had for app
-    let volume = defaults.float(forKey: "Volume")
-    let array = [1,2,3]
+    //let volume = defaults.float(forKey: "Volume")
+    //let array = [1,2,3]
 
     defaults.set(true, forKey: "MusicOn")
     defaults.set(Date(), forKey: "AppLastOpenByUser")
-    let appOpen = defaults.object(forKey: "AppLastOpenByUser")
+    //let appOpen = defaults.object(forKey: "AppLastOpenByUser")
     //defaults.array(forkey: "myArray")
     //use defaults only to save few kb of data, we don't want to save too much data
     //don't use it as database, all gets loaded up syncly, even before anything, it takes too long to load entire plist, so have only few kb of data
@@ -36,7 +36,7 @@ class newCar {
 
 func Singleton() {
     //have only 1 property shared by all classes
-    let myCar = Car()
+    //let myCar = Car()
     let mycAr1 = newCar.singletonCar
     mycAr1.color = "BLue"
     print(mycAr1.color) //blue
