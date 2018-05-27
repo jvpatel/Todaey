@@ -35,6 +35,8 @@ class ToDoListViewController: UITableViewController {
         //set items array only if default has data saved, else app crashes
         if let items = defaults.array(forKey: "TodoListArray") as? [Item] {
             itemArray = items
+
+            
             
         }
     }
@@ -123,6 +125,10 @@ class ToDoListViewController: UITableViewController {
             self.itemArray.append(newItem)
             
             //save in user defaults
+            //trying to save array of our own custom object, it is rejecting
+            ////attempting to set non property using UserDefaults ->
+            //we are mis-using user default. so need better solution to persist data than using default
+            //user default doesn't work so great, don't use it for anything other small stuff like volume on/off
             self.defaults.set(self.itemArray, forKey: "TodoListArray")
             
             self.tableView.reloadData()
