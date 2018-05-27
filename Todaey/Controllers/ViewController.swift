@@ -7,12 +7,15 @@
 //
 
 import UIKit
+import CoreData
 
 class ToDoListViewController: UITableViewController {
 
     var itemArray = [Item]() //TECT FOR CELL1, CELL2, CELL3
     
     let dataFilePath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first?.appendingPathComponent("Items.plist")
+    
+    let context = (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
     
     //gets saved in plist file - that's why we need key-value
     //find path of default save file: need (filepath of sandbox of apprun, id of simulator, and id of sandbox that run our app
@@ -26,6 +29,9 @@ class ToDoListViewController: UITableViewController {
         //organized by directory and domain-mask (user home directory, where we'll save sustomer's data associated with this path)
         //create our own plist file
         print(dataFilePath)
+        
+        //searchBar.Delgate = self either do in code, or control-drag to the yellow icon, and select outlet as delegate
+        
         loadItems()
 //        let newItem = Item()
 //        newItem.title = "Find Mike"
@@ -100,6 +106,14 @@ class ToDoListViewController: UITableViewController {
         //say you can have only 8 cells reusable in a tableview, check 1st one, and the 9th one will be checked automatically
         //if we uncheck 9th one, then 1st one also unchecked because table-view cell re-used
         
+        //use to update, but still have to call save() after it to commit changes
+        //itemArray[indexPath.row].setValue("Completed", forKey: "title")
+        
+        //context.delete(itemArray[indexPath.row]) - call this one first otherwise it will delete something that you didn't want to delete
+        //itemArray.remove(at: indexPath.row) //deletes only from our array
+        //our app behaves stragely, it leaves empty spot at the place that was delete, so empty top 2 rows then listing starts
+        
+        
         //toggle item-only reflected in item array
         itemArray[indexPath.row].done = !itemArray[indexPath.row].done //this solves the check issue, and reusable of cell
         saveItems()
@@ -126,8 +140,12 @@ class ToDoListViewController: UITableViewController {
             print("Success")
             print(textField.text!)
             
-            let newItem = Item()
+            //can use Appdelegate, but instead use shared, inside it is something called delegate
+            //it is called app delegate
+            
+            let newItem = Item(context: self.context)
             newItem.title = textField.text!
+            newItem.done = false
             
             //self, because we are in closure
             self.itemArray.append(newItem)
@@ -169,23 +187,76 @@ class ToDoListViewController: UITableViewController {
         let encoder = PropertyListEncoder()
         
         do {
-            let data = try encoder.encode(self.itemArray)
-            try data.write(to: self.dataFilePath!)
+            try context.save()
         } catch {
-            print("Error occured")
+            print("Error saving conext: \(error)")
         }
     }
-        
-    func loadItems() {
-        if let data = try? Data(contentsOf: dataFilePath!) {
-            let decoder = PropertyListDecoder()
-            do {
-                //tell it datatype to cast
-                 itemArray = try decoder.decode([Item].self, from: data)
-            } catch {
-                print("Error decoding")
-            }
+   
+    //with is external parameter, request is internal parameter
+    func loadItems(with request: NSFetchRequest<Item> = Item.fetchRequest()) {
+        do {
+            //will fetch many number of items
+            //let request : NSFetchRequest<Item> = Item.fetchRequest()
+            itemArray = try context.fetch(request) //we know it will be array of items
+        }
+        catch {
+            print("Error fetching data: \(error)")
         }
     }
 }
 
+//MARK: - Search bar methods
+
+//helps to split functionality with all of this implementation, because overtime they will increase
+//MVC controllers increase very long, so better to modular well. So separate, needed core functionality of application from addons like search
+//we are extending functionality by search
+extension ToDoListViewController: UISearchBarDelegate {
+    
+    //when user clicks on search, this method wil be called
+    func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
+        let request : NSFetchRequest<Item> = Item.fetchRequest()
+        
+        print(searchBar.text!)
+        
+        //used to query, it is a part of foundation, [cd] for dicratic, like bar in the top, or colon in the top of letters
+//        let predicate = NSPredicate(format: "title CONTAINS[cd] %@", searchBar.text!)
+//        request.predicate = predicate
+        
+         request.predicate = NSPredicate(format: "title CONTAINS[cd] %@", searchBar.text!)
+        
+//        let sortDescriptor = NSSortDescriptor(key: "title", ascending: true)
+//        request.sortDescriptors = [sortDescriptor]
+        
+        request.sortDescriptors = [NSSortDescriptor(key: "title", ascending: true)]
+        loadItems(with: request)
+        
+        //do not copy paste, and repeat code, create method
+//        do {
+//            itemArray = try context.fetch(request) //we know it will be array of items
+//        }
+//        catch {
+//            print("Error fetching data: \(error)")
+//        }
+//
+//        tableView.reloadData()
+    }
+    
+    func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
+        //called all time text changes
+        
+        //when entire text is cleared, show all items, our keyboard should go away not stay there
+        if searchBar.text?.count == 0 {
+            loadItems()
+            
+            //determines who'll have the priority, which process, manages, assign this project to different thread
+            //update your UI in main thread, keyboard goes away, because this code is ran in foreground
+            DispatchQueue.main.async {
+                
+                //remove keyboard, it shouldn't be selected, and keyboard should go away
+                searchBar.resignFirstResponder()
+            }
+            
+        }
+    }
+}
