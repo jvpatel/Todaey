@@ -12,9 +12,18 @@ class ToDoListViewController: UITableViewController {
 
     var itemArray = ["Find Mike", "Buy Eggos", "Destroy DEMOGORGON"] //TECT FOR CELL1, CELL2, CELL3
     
+    //gets saved in plist file - that's why we need key-value
+    //find path of default save file: need (filepath of sandbox of apprun, id of simulator, and id of sandbox that run our app
+    let defaults = UserDefaults.standard //interface to userdefault db, store key values persistently when app launches
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         // Do any additional setup after loading the view, typically from a nib.
+        
+        //set items array only if default has data saved, else app crashes
+        if let items = defaults.array(forKey: "TodoListArray") as? [String] {
+            itemArray = items
+        }
     }
 
     override func didReceiveMemoryWarning() {
@@ -79,6 +88,10 @@ class ToDoListViewController: UITableViewController {
             
             //self, because we are in closure
             self.itemArray.append(textField.text!)
+            
+            //save in user defaults
+            self.defaults.set(self.itemArray, forKey: "TodoListArray")
+            
             self.tableView.reloadData()
         }
         
