@@ -10,7 +10,7 @@ import UIKit
 
 class ToDoListViewController: UITableViewController {
 
-    let itemArray = ["Find Mike", "Buy Eggos", "Destroy DEMOGORGON"] //TECT FOR CELL1, CELL2, CELL3
+    var itemArray = ["Find Mike", "Buy Eggos", "Destroy DEMOGORGON"] //TECT FOR CELL1, CELL2, CELL3
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -59,6 +59,42 @@ class ToDoListViewController: UITableViewController {
         }
         
         tableView.deselectRow(at: indexPath, animated: true) //shows gray then disappears background
+    }
+    
+    //MARK - Add New Items
+    
+    @IBAction func addButtonPressed(_ sender: Any) {
+        
+        // has scope everywhere locally in here
+        var textField = UITextField() //use to extend scope, read and useing
+        
+        let alert = UIAlertController(title: "Add New Todaey Item", message: "", preferredStyle: .alert)
+        
+        let action = UIAlertAction(title: "Add Item", style: .default) {
+            //trailing closure
+            (action) in
+            //what to do when user clicks the add item button on our UIAlert
+            print("Success")
+            print(textField.text!)
+            
+            //self, because we are in closure
+            self.itemArray.append(textField.text!)
+            self.tableView.reloadData()
+        }
+        
+        //add tectfield to the alert
+        alert.addTextField {
+            //trailing closure
+            (alertTextField) in
+            alertTextField.placeholder = "Create new item"
+            //not going to show anythign because shown executed when this created, not on click add item of alert box
+            print(alertTextField.text)
+            textField = alertTextField //extending scope of this textfield
+            print("now")
+        }
+        
+        alert.addAction(action)
+        present(alert, animated: true, completion: nil)
     }
     
 }
