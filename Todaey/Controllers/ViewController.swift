@@ -10,7 +10,7 @@ import UIKit
 
 class ToDoListViewController: UITableViewController {
 
-    var itemArray = ["Find Mike", "Buy Eggos", "Destroy DEMOGORGON"] //TECT FOR CELL1, CELL2, CELL3
+    var itemArray = [Item]() //TECT FOR CELL1, CELL2, CELL3
     
     //gets saved in plist file - that's why we need key-value
     //find path of default save file: need (filepath of sandbox of apprun, id of simulator, and id of sandbox that run our app
@@ -20,9 +20,22 @@ class ToDoListViewController: UITableViewController {
         super.viewDidLoad()
         // Do any additional setup after loading the view, typically from a nib.
         
+        let newItem = Item()
+        newItem.title = "Find Mike"
+        itemArray.append(newItem)
+        
+        let newItem2 = Item()
+        newItem2.title = "Buy Eggos"
+        itemArray.append(newItem2)
+        
+        let newItem3 = Item()
+        newItem3.title = "Destroy Demon"
+        itemArray.append(newItem3)
+        
         //set items array only if default has data saved, else app crashes
-        if let items = defaults.array(forKey: "TodoListArray") as? [String] {
+        if let items = defaults.array(forKey: "TodoListArray") as? [Item] {
             itemArray = items
+            
         }
     }
 
@@ -44,8 +57,26 @@ class ToDoListViewController: UITableViewController {
         //code sense, makes you know what they mean V: from iboutlet-TableView, L-local from this method
         //they both refer same thing, "ToDoItemCell" is the identifier we gave upon adding TableViewController in story board, which then gave warning (1)
         // We got cell dequeud
+        //solution: use model or dictionary: model is better to solve this check issue
+        
+        //this goes alway bottom and comes back with resuing cell, but come with checked because first one was
         let cell = tableView.dequeueReusableCell(withIdentifier: "ToDoItemCell", for: indexPath)
-        cell.textLabel?.text = itemArray[indexPath.row] //every cell has label, current row of current indexpath
+        
+        //we didn't use below one: we checked, then scroll down scroll back up again, we get brand new cell with this message, so lost checked
+        //let cell1 = UITableViewCell(style: .default, reuseIdentifier: "ToDoItemCell")
+        
+        let item = itemArray[indexPath.row]
+        cell.textLabel?.text = item.title //every cell has label, current row of current indexpath
+        cell.accessoryType = (item.done) ? .checkmark : .none
+        
+//        if item.done == true {
+//            //tableView.cellForRow(at: indexPath)?.accessoryType = .checkmark //this one didn't do check mark, may because cell was destroyed because we were reloading
+//            cell.accessoryType = .checkmark //this tells that thhis cell is created, set property of this cell as it will be active
+//        } else {
+//            //tableView.cellForRow(at: indexPath)?.accessoryType = .none
+//            cell.accessoryType = .none
+//        }
+        
         return cell //reuse prototype cell, this cell be returned and shown as row
     }
 
@@ -59,13 +90,12 @@ class ToDoListViewController: UITableViewController {
         
         //cell at this indexpath, will have accessory, set that
         //tableView.cellForRow(at: indexPath)?.accessoryType = .checkmark
+        //say you can have only 8 cells reusable in a tableview, check 1st one, and the 9th one will be checked automatically
+        //if we uncheck 9th one, then 1st one also unchecked because table-view cell re-used
         
-        if tableView.cellForRow(at: indexPath)?.accessoryType == .checkmark {
-            tableView.cellForRow(at: indexPath)?.accessoryType = .none
-        }
-        else {
-            tableView.cellForRow(at: indexPath)?.accessoryType = .checkmark
-        }
+        itemArray[indexPath.row].done = !itemArray[indexPath.row].done //this solves the check issue, and reusable of cell
+        
+        tableView.reloadData() //refresh after updating done, forces to call "cellForRowAt" method method called for every single cell in tableview visibility
         
         tableView.deselectRow(at: indexPath, animated: true) //shows gray then disappears background
     }
@@ -86,8 +116,11 @@ class ToDoListViewController: UITableViewController {
             print("Success")
             print(textField.text!)
             
+            let newItem = Item()
+            newItem.title = textField.text!
+            
             //self, because we are in closure
-            self.itemArray.append(textField.text!)
+            self.itemArray.append(newItem)
             
             //save in user defaults
             self.defaults.set(self.itemArray, forKey: "TodoListArray")
