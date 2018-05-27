@@ -88,7 +88,7 @@ class ToDoListViewController: UITableViewController {
             (alertTextField) in
             alertTextField.placeholder = "Create new item"
             //not going to show anythign because shown executed when this created, not on click add item of alert box
-            print(alertTextField.text)
+            print(alertTextField.text!) //force unwrap, because we know it will always have value
             textField = alertTextField //extending scope of this textfield
             print("now")
         }
