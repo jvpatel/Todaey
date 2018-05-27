@@ -12,41 +12,45 @@ class ToDoListViewController: UITableViewController {
 
     var itemArray = [Item]() //TECT FOR CELL1, CELL2, CELL3
     
+    let dataFilePath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first?.appendingPathComponent("Items.plist")
+    
     //gets saved in plist file - that's why we need key-value
     //find path of default save file: need (filepath of sandbox of apprun, id of simulator, and id of sandbox that run our app
-    let defaults = UserDefaults.standard //interface to userdefault db, store key values persistently when app launches
+    //let defaults = UserDefaults.standard //interface to userdefault db, store key values persistently when app launches
     
     override func viewDidLoad() {
         super.viewDidLoad()
         // Do any additional setup after loading the view, typically from a nib.
         
-        let newItem = Item()
-        newItem.title = "Find Mike"
-        itemArray.append(newItem)
-        
-        let newItem2 = Item()
-        newItem2.title = "Buy Eggos"
-        itemArray.append(newItem2)
-        
-        let newItem3 = Item()
-        newItem3.title = "Destroy Demon"
-        itemArray.append(newItem3)
+        //path to the documents folder, FileManager provides interface to filesystem, default filemanger is singleton
+        //organized by directory and domain-mask (user home directory, where we'll save sustomer's data associated with this path)
+        //create our own plist file
+        print(dataFilePath)
+        loadItems()
+//        let newItem = Item()
+//        newItem.title = "Find Mike"
+//        itemArray.append(newItem)
+//
+//        let newItem2 = Item()
+//        newItem2.title = "Buy Eggos"
+//        itemArray.append(newItem2)
+//
+//        let newItem3 = Item()
+//        newItem3.title = "Destroy Demon"
+//        itemArray.append(newItem3)
         
         //set items array only if default has data saved, else app crashes
-        if let items = defaults.array(forKey: "TodoListArray") as? [Item] {
-            itemArray = items
-
-            
-            
-        }
-    }
+//        if let items = defaults.array(forKey: "TodoListArray") as? [Item] {
+//            itemArray = items
+//        }
+   }
 
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
         // Dispose of any resources that can be recreated.
     }
 
-    //MARK - Tableview DataSource Methods
+    //MARK: - Tableview DataSource Methods
     // Display cell and Define number if cells
     
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
@@ -82,7 +86,8 @@ class ToDoListViewController: UITableViewController {
         return cell //reuse prototype cell, this cell be returned and shown as row
     }
 
-    //MARK - TableView and Delegate Methods
+    //also called pragma mark
+    //MARK: - TableView and Delegate Methods
     // Click cell listening, and TableViewDelegate
     
     //check to see if the row is selected
@@ -95,14 +100,17 @@ class ToDoListViewController: UITableViewController {
         //say you can have only 8 cells reusable in a tableview, check 1st one, and the 9th one will be checked automatically
         //if we uncheck 9th one, then 1st one also unchecked because table-view cell re-used
         
+        //toggle item-only reflected in item array
         itemArray[indexPath.row].done = !itemArray[indexPath.row].done //this solves the check issue, and reusable of cell
+        saveItems()
+        
         
         tableView.reloadData() //refresh after updating done, forces to call "cellForRowAt" method method called for every single cell in tableview visibility
         
         tableView.deselectRow(at: indexPath, animated: true) //shows gray then disappears background
     }
     
-    //MARK - Add New Items
+    //MARK: - Add New Items
     
     @IBAction func addButtonPressed(_ sender: Any) {
         
@@ -124,12 +132,17 @@ class ToDoListViewController: UITableViewController {
             //self, because we are in closure
             self.itemArray.append(newItem)
             
+            self.saveItems()
+            
             //save in user defaults
             //trying to save array of our own custom object, it is rejecting
             ////attempting to set non property using UserDefaults ->
             //we are mis-using user default. so need better solution to persist data than using default
-            //user default doesn't work so great, don't use it for anything other small stuff like volume on/off
-            self.defaults.set(self.itemArray, forKey: "TodoListArray")
+            //user default doesn't work so great, don't use it for anything other small stuff like volume on/off. Takes only standard stuff, not our custom part
+            //Solution: use sandbox to persist data. All apps in thier own sandbox, each have own folders to save retreive data
+            //all of this data is what we sync with itunes/icloud, don't affect ios operating system, iphone prevents from making changes to operating system, only way to bypass is jailbreak, that's why iphone best secured
+            //
+            //self.defaults.set(self.itemArray, forKey: "TodoListArray")
             
             self.tableView.reloadData()
         }
@@ -149,5 +162,30 @@ class ToDoListViewController: UITableViewController {
         present(alert, animated: true, completion: nil)
     }
     
+    //MARK: - Supporting methods
+    
+    //create before copy paste
+    func saveItems(){
+        let encoder = PropertyListEncoder()
+        
+        do {
+            let data = try encoder.encode(self.itemArray)
+            try data.write(to: self.dataFilePath!)
+        } catch {
+            print("Error occured")
+        }
+    }
+        
+    func loadItems() {
+        if let data = try? Data(contentsOf: dataFilePath!) {
+            let decoder = PropertyListDecoder()
+            do {
+                //tell it datatype to cast
+                 itemArray = try decoder.decode([Item].self, from: data)
+            } catch {
+                print("Error decoding")
+            }
+        }
+    }
 }
 
