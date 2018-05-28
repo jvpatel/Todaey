@@ -29,7 +29,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         
         do {
             //oop, and persists data
-            let realm = try Realm()
+            _ = try Realm()
             
             //commits
 //            try realm.write {
