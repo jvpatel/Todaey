@@ -60,6 +60,25 @@ class CategoryTableViewController: UITableViewController {
 //        return 0
 //    }
     
+    // MARK: - TableView delegate Methods
+    
+    //when category selected, take to the corresponding items view, basically perform segue when row is selected
+    override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        performSegue(withIdentifier: "goToItems", sender: self)
+    }
+    
+    //before we perform segue, we have to load itemsArray to have only items related to this category
+    //so, prepare for segue, this method called before segue is executed, before above method is executed
+    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
+        let destinationVC = segue.destination as! ToDoListViewController //hold reference of the landing controller
+        
+        //grab category of selected cell, possibilty that no row is selected, but never possible because we segue when row selected
+        if let indexPath = tableView.indexPathForSelectedRow {
+            destinationVC.selectedCategory = categoryArray[indexPath.row]
+        }
+        
+    }
+    
      // MARK: - Add new items (Navigation)
      
      /* // In a storyboard-based application, you will often want to do a little preparation before navigation
@@ -114,9 +133,6 @@ class CategoryTableViewController: UITableViewController {
         alert.addAction(action)
         present(alert, animated: true, completion: nil)
     }
-    
-    // MARK: - TableView delegate Methods
-    
     
     // MARK: - Supporting Data Manipulation Methods
     //set array of ..

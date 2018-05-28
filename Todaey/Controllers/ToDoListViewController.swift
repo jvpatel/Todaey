@@ -11,10 +11,18 @@ import CoreData
 
 class ToDoListViewController: UITableViewController {
 
+    var selectedCategory : Category? {
+        //executed when the value of this variable is set, when set loadup itemsArray
+        didSet {
+            loadItems()
+        }
+    }
+    
     var itemArray = [Item]() //TECT FOR CELL1, CELL2, CELL3
     
     let dataFilePath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first?.appendingPathComponent("Items.plist")
     
+    //access singleton that's the shared application, use delegate property tap into persistent container which is lazy variable
     let context = (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
     
     //gets saved in plist file - that's why we need key-value
@@ -32,7 +40,7 @@ class ToDoListViewController: UITableViewController {
         
         //searchBar.Delgate = self either do in code, or control-drag to the yellow icon, and select outlet as delegate
         
-        loadItems()
+        //loadItems() - not needed anymore
 //        let newItem = Item()
 //        newItem.title = "Find Mike"
 //        itemArray.append(newItem)
@@ -146,6 +154,7 @@ class ToDoListViewController: UITableViewController {
             let newItem = Item(context: self.context)
             newItem.title = textField.text!
             newItem.done = false
+            newItem.parentCategory = self.selectedCategory
             
             //self, because we are in closure
             self.itemArray.append(newItem)
@@ -191,11 +200,24 @@ class ToDoListViewController: UITableViewController {
         } catch {
             print("Error saving conext: \(error)")
         }
+        
+        tableView.reloadData()
     }
    
     //with is external parameter, request is internal parameter
-    func loadItems(with request: NSFetchRequest<Item> = Item.fetchRequest()) {
+    func loadItems(with request: NSFetchRequest<Item> = Item.fetchRequest(), predicate: NSPredicate? = nil) {
         do {
+            
+            //overrides the query of search, we want both search and this categories criteria as well
+            //Soln: create compound predicate
+            let categoryPredicate = NSPredicate(format: "parentCategory.name MATCHES %@", selectedCategory!.name!)
+            
+            if let additionalPredicate = predicate {
+                request.predicate = NSCompoundPredicate(andPredicateWithSubpredicates: [categoryPredicate, additionalPredicate])
+            } else {
+                request.predicate = categoryPredicate
+            }
+            
             //will fetch many number of items
             //let request : NSFetchRequest<Item> = Item.fetchRequest()
             itemArray = try context.fetch(request) //we know it will be array of items
@@ -203,6 +225,9 @@ class ToDoListViewController: UITableViewController {
         catch {
             print("Error fetching data: \(error)")
         }
+        
+        //needed because it didn't refresh grid after search
+        tableView.reloadData()
     }
 }
 
@@ -223,13 +248,13 @@ extension ToDoListViewController: UISearchBarDelegate {
 //        let predicate = NSPredicate(format: "title CONTAINS[cd] %@", searchBar.text!)
 //        request.predicate = predicate
         
-         request.predicate = NSPredicate(format: "title CONTAINS[cd] %@", searchBar.text!)
+         let predicate = NSPredicate(format: "title CONTAINS[cd] %@", searchBar.text!)
         
 //        let sortDescriptor = NSSortDescriptor(key: "title", ascending: true)
 //        request.sortDescriptors = [sortDescriptor]
         
         request.sortDescriptors = [NSSortDescriptor(key: "title", ascending: true)]
-        loadItems(with: request)
+        loadItems(with: request, predicate: predicate)
         
         //do not copy paste, and repeat code, create method
 //        do {
