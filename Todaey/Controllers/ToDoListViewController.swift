@@ -9,7 +9,7 @@
 import UIKit
 import RealmSwift
 
-class ToDoListViewController: UITableViewController {
+class ToDoListViewController: SwipeTableViewController {
 
     let realm = try! Realm()
     var selectedCategory : Category? {
@@ -76,10 +76,13 @@ class ToDoListViewController: UITableViewController {
         //solution: use model or dictionary: model is better to solve this check issue
         
         //this goes alway bottom and comes back with resuing cell, but come with checked because first one was
-        let cell = tableView.dequeueReusableCell(withIdentifier: "ToDoItemCell", for: indexPath)
+        //not needed, done by super class
+        //let cell = tableView.dequeueReusableCell(withIdentifier: "ToDoItemCell", for: indexPath)
         
         //we didn't use below one: we checked, then scroll down scroll back up again, we get brand new cell with this message, so lost checked
         //let cell1 = UITableViewCell(style: .default, reuseIdentifier: "ToDoItemCell")
+        //get the swipe cell from superclass, we are giving our tableview to the superclass, which will make it swipe cell, and pass it back to us here
+        let cell = super.tableView(tableView, cellForRowAt: indexPath)
         
         if let item = toDoItems?[indexPath.row] {
             cell.textLabel?.text = item.title //every cell has label, current row of current indexpath
@@ -206,6 +209,29 @@ class ToDoListViewController: UITableViewController {
         
         alert.addAction(action)
         present(alert, animated: true, completion: nil)
+    }
+    
+    // MARK: - Swipe Methods
+    
+    //delete method from swipe, we will override here, and it should delete as expected
+    override func updateModel(at indexPath: IndexPath) {
+        //if don't use below line, than super class method is not executed, so you won't get print
+        //super.updateModel(at: indexPath)
+        
+        //flow: deletion - triggers delegate method "edit actions for row at" in supperclass,
+        // it has closure to call updateModel-Indexpath, that calls updateModel() of super, but it's overridden by categoryclass, so it will execute category class update method. to execute updatemodel of super, this category method has to call by super.updatemodel
+        
+        if let itemForDeletion = self.toDoItems?[indexPath.row] {
+            do {
+                try self.realm.write {
+                    //delete category
+                    self.realm.delete(itemForDeletion)
+                }
+            }
+            catch {
+                print(error)
+            }
+        }
     }
     
     //MARK: - Supporting methods

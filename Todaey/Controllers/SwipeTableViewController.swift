@@ -13,8 +13,25 @@ class SwipeTableViewController: UITableViewController, SwipeTableViewCellDelegat
 
     override func viewDidLoad() {
         super.viewDidLoad()
+        
+        tableView.rowHeight = 80.0
     }
 
+    // MARK: - TableView Datasource Methods
+    override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        
+        //remove all swipe stuff
+        let cell = tableView.dequeueReusableCell(withIdentifier: "Cell", for: indexPath) as! SwipeTableViewCell
+        
+        //cat[] changed to cat?[] meaning get value only if it is not nil - to be implemented in front-end UIClass not in this class, because this will be super class
+        //cell.textLabel?.text = categoryArray?[indexPath.row].name ?? "No Categories Added" //every cell has label, current row of current indexpath
+        
+        //remove all swipe stuff
+        cell.delegate = self
+        
+        return cell //reuse prototype cell, this cell be returned and shown as row
+    }
+    
     // MARK: - SwipeTableViewCellDelegate methods
     
     //handles when user swipes on cell, orientation from right
@@ -25,6 +42,11 @@ class SwipeTableViewController: UITableViewController, SwipeTableViewCellDelegat
         let deleteAction = SwipeAction(style: .destructive, title: "Delete") { action, indexPath in
             // handle action by updating model with deletion
             
+            print("delete stuff")
+            
+            self.updateModel(at: indexPath)
+            
+            //removed because too specific for a super class, it doesn't need to know specifics of extending class. Solution: trigger a function call that can be used by child classes
 //            if let categoryForDeletion = self.categoryArray?[indexPath.row] {
 //                do {
 //                    try self.realm.write {
@@ -51,6 +73,28 @@ class SwipeTableViewController: UITableViewController, SwipeTableViewCellDelegat
         var options = SwipeTableOptions()
         options.expansionStyle = .destructive
         return options
+    }
+    
+    // MARK: - Trigger functions
+    
+    //trigger function to child class
+    func updateModel(at indexPath: IndexPath){
+        //update datamodel here
+      
+        print("update using super class")
+        
+        //sub classes will override this method to finishup this delete task in their own way
+        //            if let categoryForDeletion = self.categoryArray?[indexPath.row] {
+        //                do {
+        //                    try self.realm.write {
+        //                        //delete category
+        //                        self.realm.delete(categoryForDeletion)
+        //                    }
+        //                }
+        //                catch {
+        //                    print(error)
+        //                }
+        //            }
     }
 
 }
