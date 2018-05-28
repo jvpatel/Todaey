@@ -129,6 +129,8 @@ class CategoryTableViewController: UITableViewController {
         } catch {
             print("Error saving conext: \(error)")
         }
+        
+        tableView.reloadData()
     }
     
     func loadCategories(with request: NSFetchRequest<Category> = Category.fetchRequest()) {
@@ -138,6 +140,8 @@ class CategoryTableViewController: UITableViewController {
         catch {
             print("Error fetching data: \(error)")
         }
+        
+        tableView.reloadData()
     }
     
     /*
