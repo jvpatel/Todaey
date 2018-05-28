@@ -15,7 +15,9 @@
 		69DB3B5820BB195C00FB64FB /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 69DB3B5720BB195C00FB64FB /* Assets.xcassets */; };
 		69DB3B5B20BB195C00FB64FB /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 69DB3B5920BB195C00FB64FB /* LaunchScreen.storyboard */; };
 		69DB3B6520BB34C800FB64FB /* Notes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 69DB3B6420BB34C800FB64FB /* Notes.swift */; };
-		69DB3B8F20BB521000FB64FB /* DataModel.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = 69DB3B8D20BB521000FB64FB /* DataModel.xcdatamodeld */; };
+		69E234A020BC77F5001350A4 /* ExampleOfRealm.swift in Sources */ = {isa = PBXBuildFile; fileRef = 69E2349F20BC77F5001350A4 /* ExampleOfRealm.swift */; };
+		69E234A220BC7BCA001350A4 /* Item.swift in Sources */ = {isa = PBXBuildFile; fileRef = 69E234A120BC7BCA001350A4 /* Item.swift */; };
+		69E234A420BC7BD8001350A4 /* Category.swift in Sources */ = {isa = PBXBuildFile; fileRef = 69E234A320BC7BD8001350A4 /* Category.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -29,7 +31,9 @@
 		69DB3B5A20BB195C00FB64FB /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		69DB3B5C20BB195C00FB64FB /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		69DB3B6420BB34C800FB64FB /* Notes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Notes.swift; sourceTree = "<group>"; };
-		69DB3B8E20BB521000FB64FB /* DataModel.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = DataModel.xcdatamodel; sourceTree = "<group>"; };
+		69E2349F20BC77F5001350A4 /* ExampleOfRealm.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExampleOfRealm.swift; sourceTree = "<group>"; };
+		69E234A120BC7BCA001350A4 /* Item.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Item.swift; sourceTree = "<group>"; };
+		69E234A320BC7BD8001350A4 /* Category.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Category.swift; sourceTree = "<group>"; };
 		A7DB78CAC6754F9608AEB764 /* Pods_Todaey.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_Todaey.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		C8EDAAD92F1F6E5D14C205FB /* Pods-Todaey.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Todaey.release.xcconfig"; path = "Pods/Target Support Files/Pods-Todaey/Pods-Todaey.release.xcconfig"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -115,7 +119,9 @@
 		69DB3B9020BB522D00FB64FB /* Data Model */ = {
 			isa = PBXGroup;
 			children = (
-				69DB3B8D20BB521000FB64FB /* DataModel.xcdatamodeld */,
+				69E2349F20BC77F5001350A4 /* ExampleOfRealm.swift */,
+				69E234A120BC7BCA001350A4 /* Item.swift */,
+				69E234A320BC7BD8001350A4 /* Category.swift */,
 			);
 			path = "Data Model";
 			sourceTree = "<group>";
@@ -251,11 +257,13 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				69DB3B8F20BB521000FB64FB /* DataModel.xcdatamodeld in Sources */,
+				69E234A020BC77F5001350A4 /* ExampleOfRealm.swift in Sources */,
 				69DB3B5320BB195A00FB64FB /* ToDoListViewController.swift in Sources */,
 				692FF33920BB7BD3004860CD /* CategoryTableViewController.swift in Sources */,
+				69E234A220BC7BCA001350A4 /* Item.swift in Sources */,
 				69DB3B5120BB195A00FB64FB /* AppDelegate.swift in Sources */,
 				69DB3B6520BB34C800FB64FB /* Notes.swift in Sources */,
+				69E234A420BC7BD8001350A4 /* Category.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -455,19 +463,6 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
-
-/* Begin XCVersionGroup section */
-		69DB3B8D20BB521000FB64FB /* DataModel.xcdatamodeld */ = {
-			isa = XCVersionGroup;
-			children = (
-				69DB3B8E20BB521000FB64FB /* DataModel.xcdatamodel */,
-			);
-			currentVersion = 69DB3B8E20BB521000FB64FB /* DataModel.xcdatamodel */;
-			path = DataModel.xcdatamodeld;
-			sourceTree = "<group>";
-			versionGroupType = wrapper.xcdatamodel;
-		};
-/* End XCVersionGroup section */
 	};
 	rootObject = 69DB3B4520BB195A00FB64FB /* Project object */;
 }

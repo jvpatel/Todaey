@@ -8,6 +8,7 @@
 
 import UIKit
 import CoreData
+import RealmSwift
 
 @UIApplicationMain
 class AppDelegate: UIResponder, UIApplicationDelegate {
@@ -20,6 +21,24 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         //before viewcontroller called
         
         print("didfinishlaunchingwithoptions")
+//        print(Realm.Configuration.defaultConfiguration.fileURL)
+//
+//        let data = Data()
+//        data.name = "Jay"
+//        data.age = 12
+        
+        do {
+            //oop, and persists data
+            let realm = try Realm()
+            
+            //commits
+//            try realm.write {
+//                //tells to add object
+//                realm.add(data)
+//            }
+        } catch {
+            print("Erro occured on initializing realm: \(error)")
+        }
         
         //filepath of the plist file where our default data is saved: "'
         //device folder -> id "device id" simulator id

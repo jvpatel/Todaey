@@ -7,15 +7,13 @@
 //
 
 import UIKit
-import CoreData
+import RealmSwift
 
 class CategoryTableViewController: UITableViewController {
 
-    var categoryArray = [Category]()
-    let context = (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
-    
-    //not needed anymore
-    //let dataFilePath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first?.appendingPathComponent("Items.plist")
+    //try! means we know there's possibilty, but ignore we know it will never fail
+    let realm = try! Realm()
+    var categoryArray : Results<Category>? //changed the type because better to change type than casting many <> means unwrap
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -38,14 +36,20 @@ class CategoryTableViewController: UITableViewController {
 
     //Set number of rows you needed
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return categoryArray.count //that many number of rows (cells) in section (view)
+        
+        //will throw error, if loading categories failed
+        
+        // 'categoryArray?.count' can be nil, neil-coalescing operator, we are saying: get count of categories if it is not nil, if nil then that entire will be nil
+        return categoryArray?.count ?? 1 //that many number of rows (cells) in section (view)
     }
     
     //get the cell, modify it as you want, send it back
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         
         let cell = tableView.dequeueReusableCell(withIdentifier: "CategoryCell", for: indexPath)
-        cell.textLabel?.text = categoryArray[indexPath.row].name //every cell has label, current row of current indexpath
+        
+        //cat[] changed to cat?[] meaning get value only if it is not nil
+        cell.textLabel?.text = categoryArray?[indexPath.row].name ?? "No Categories Added" //every cell has label, current row of current indexpath
         
         return cell //reuse prototype cell, this cell be returned and shown as row
     }
@@ -74,7 +78,7 @@ class CategoryTableViewController: UITableViewController {
         
         //grab category of selected cell, possibilty that no row is selected, but never possible because we segue when row selected
         if let indexPath = tableView.indexPathForSelectedRow {
-            destinationVC.selectedCategory = categoryArray[indexPath.row]
+            destinationVC.selectedCategory = categoryArray?[indexPath.row]
         }
         
     }
@@ -107,14 +111,15 @@ class CategoryTableViewController: UITableViewController {
             
             //can use Appdelegate, but instead use shared, inside it is something called delegate
             //it is called app delegate
-            let newCategory = Category(context: self.context)
+            let newCategory = Category()
             
             newCategory.name = textField.text!
             
             //self, because we are in closure
-            self.categoryArray.append(newCategory)
+            //not needed because category list of realm is auto-updating, it will update database by itself, and automanage for tracking
+            //self.categoryArray.append(newCategory)
             
-            self.saveCategories()
+            self.saveCategories(category: newCategory)
             
             self.tableView.reloadData()
         }
@@ -139,9 +144,11 @@ class CategoryTableViewController: UITableViewController {
     //create contet, create load from data, add new items, save item button to save
     //setup categoryview same as the items
     
-    func saveCategories(){
+    func saveCategories(category : Category){
         do {
-            try context.save()
+            try realm.write {
+                realm.add(category)
+            }
         } catch {
             print("Error saving conext: \(error)")
         }
@@ -149,13 +156,11 @@ class CategoryTableViewController: UITableViewController {
         tableView.reloadData()
     }
     
-    func loadCategories(with request: NSFetchRequest<Category> = Category.fetchRequest()) {
-        do {
-            categoryArray = try context.fetch(request)
-        }
-        catch {
-            print("Error fetching data: \(error)")
-        }
+    func loadCategories() {
+        //loads up all the catgories "realm.object" is list or some other datatype
+        //tought to cast, better to change type of category to keep it go faster
+        //it will auto-update our categories
+        categoryArray = realm.objects(Category.self)
         
         tableView.reloadData()
     }

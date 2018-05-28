@@ -7,10 +7,11 @@
 //
 
 import UIKit
-import CoreData
+import RealmSwift
 
 class ToDoListViewController: UITableViewController {
 
+    let realm = try! Realm()
     var selectedCategory : Category? {
         //executed when the value of this variable is set, when set loadup itemsArray
         didSet {
@@ -18,12 +19,7 @@ class ToDoListViewController: UITableViewController {
         }
     }
     
-    var itemArray = [Item]() //TECT FOR CELL1, CELL2, CELL3
-    
-    let dataFilePath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first?.appendingPathComponent("Items.plist")
-    
-    //access singleton that's the shared application, use delegate property tap into persistent container which is lazy variable
-    let context = (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
+    var toDoItems: Results<Item>? //TECT FOR CELL1, CELL2, CELL3
     
     //gets saved in plist file - that's why we need key-value
     //find path of default save file: need (filepath of sandbox of apprun, id of simulator, and id of sandbox that run our app
@@ -36,7 +32,7 @@ class ToDoListViewController: UITableViewController {
         //path to the documents folder, FileManager provides interface to filesystem, default filemanger is singleton
         //organized by directory and domain-mask (user home directory, where we'll save sustomer's data associated with this path)
         //create our own plist file
-        print(dataFilePath!)
+        //print(dataFilePath!)
         
         //searchBar.Delgate = self either do in code, or control-drag to the yellow icon, and select outlet as delegate
         
@@ -68,7 +64,7 @@ class ToDoListViewController: UITableViewController {
     // Display cell and Define number if cells
     
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return itemArray.count //that many number of rows (cells) in section (view)
+        return toDoItems?.count ?? 1 //that many number of rows (cells) in section (view)
     }
     
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
@@ -85,9 +81,13 @@ class ToDoListViewController: UITableViewController {
         //we didn't use below one: we checked, then scroll down scroll back up again, we get brand new cell with this message, so lost checked
         //let cell1 = UITableViewCell(style: .default, reuseIdentifier: "ToDoItemCell")
         
-        let item = itemArray[indexPath.row]
-        cell.textLabel?.text = item.title //every cell has label, current row of current indexpath
-        cell.accessoryType = (item.done) ? .checkmark : .none
+        if let item = toDoItems?[indexPath.row] {
+            cell.textLabel?.text = item.title //every cell has label, current row of current indexpath
+            cell.accessoryType = (item.done) ? .checkmark : .none
+            
+        } else {
+            cell.textLabel?.text = "No items added"
+        }
         
 //        if item.done == true {
 //            //tableView.cellForRow(at: indexPath)?.accessoryType = .checkmark //this one didn't do check mark, may because cell was destroyed because we were reloading
@@ -107,7 +107,7 @@ class ToDoListViewController: UITableViewController {
     //check to see if the row is selected
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         print(indexPath.row) //tells which row was selected
-        print(itemArray[indexPath.row])
+        //print(toDoItems?[indexPath.row]??"")
         
         //cell at this indexpath, will have accessory, set that
         //tableView.cellForRow(at: indexPath)?.accessoryType = .checkmark
@@ -123,9 +123,20 @@ class ToDoListViewController: UITableViewController {
         
         
         //toggle item-only reflected in item array
-        itemArray[indexPath.row].done = !itemArray[indexPath.row].done //this solves the check issue, and reusable of cell
-        saveItems()
+//        toDoItems?[indexPath.row].done = !((toDoItems?[indexPath.row].done))! //this solves the check issue, and reusable of cell
+//        saveItems()
         
+        if let item = toDoItems?[indexPath.row] {
+            do{
+                try realm.write {
+                    //realm.delete(item) //this is to know how to delete
+                    item.done = !item.done //this will update database record
+                }
+            }
+            catch {
+                print("Error saving done status: \(error)")
+            }
+        }
         
         tableView.reloadData() //refresh after updating done, forces to call "cellForRowAt" method method called for every single cell in tableview visibility
         
@@ -151,15 +162,22 @@ class ToDoListViewController: UITableViewController {
             //can use Appdelegate, but instead use shared, inside it is something called delegate
             //it is called app delegate
             
-            let newItem = Item(context: self.context)
-            newItem.title = textField.text!
-            newItem.done = false
-            newItem.parentCategory = self.selectedCategory
+            if let currentCategory = self.selectedCategory {
+                do {
+                    try self.realm.write {
+                        let newItem = Item()
+                        newItem.title = textField.text!
+                        currentCategory.items.append(newItem)
+                        //realm.add(newItem) - there's nothing to add here, we added to categories, that's it, realm already tracked and added by itself
+                    }
+                }
+                catch {
+                    print("Error saving data: \(error)")
+                }
+                
+            }
             
-            //self, because we are in closure
-            self.itemArray.append(newItem)
-            
-            self.saveItems()
+            self.tableView.reloadData()
             
             //save in user defaults
             //trying to save array of our own custom object, it is rejecting
@@ -171,7 +189,7 @@ class ToDoListViewController: UITableViewController {
             //
             //self.defaults.set(self.itemArray, forKey: "TodoListArray")
             
-            self.tableView.reloadData()
+            
         }
         
         //add tectfield to the alert
@@ -192,39 +210,23 @@ class ToDoListViewController: UITableViewController {
     //MARK: - Supporting methods
     
     //create before copy paste
-    func saveItems(){
-        //let encoder = PropertyListEncoder()
-        
-        do {
-            try context.save()
-        } catch {
-            print("Error saving conext: \(error)")
-        }
-        
-        tableView.reloadData()
-    }
+//    func saveItems(){
+//        //let encoder = PropertyListEncoder()
+//
+//        do {
+//            try realm.write {
+//                //realm.add(Item)
+//            }
+//        } catch {
+//            print("Error saving conext: \(error)")
+//        }
+//
+//        tableView.reloadData()
+//    }
    
     //with is external parameter, request is internal parameter
-    func loadItems(with request: NSFetchRequest<Item> = Item.fetchRequest(), predicate: NSPredicate? = nil) {
-        do {
-            
-            //overrides the query of search, we want both search and this categories criteria as well
-            //Soln: create compound predicate
-            let categoryPredicate = NSPredicate(format: "parentCategory.name MATCHES %@", selectedCategory!.name!)
-            
-            if let additionalPredicate = predicate {
-                request.predicate = NSCompoundPredicate(andPredicateWithSubpredicates: [categoryPredicate, additionalPredicate])
-            } else {
-                request.predicate = categoryPredicate
-            }
-            
-            //will fetch many number of items
-            //let request : NSFetchRequest<Item> = Item.fetchRequest()
-            itemArray = try context.fetch(request) //we know it will be array of items
-        }
-        catch {
-            print("Error fetching data: \(error)")
-        }
+    func loadItems() {
+        toDoItems = selectedCategory?.items.sorted(byKeyPath: "title", ascending: true)
         
         //needed because it didn't refresh grid after search
         tableView.reloadData()
@@ -236,52 +238,52 @@ class ToDoListViewController: UITableViewController {
 //helps to split functionality with all of this implementation, because overtime they will increase
 //MVC controllers increase very long, so better to modular well. So separate, needed core functionality of application from addons like search
 //we are extending functionality by search
-extension ToDoListViewController: UISearchBarDelegate {
-    
-    //when user clicks on search, this method wil be called
-    func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
-        let request : NSFetchRequest<Item> = Item.fetchRequest()
-        
-        print(searchBar.text!)
-        
-        //used to query, it is a part of foundation, [cd] for dicratic, like bar in the top, or colon in the top of letters
-//        let predicate = NSPredicate(format: "title CONTAINS[cd] %@", searchBar.text!)
-//        request.predicate = predicate
-        
-         let predicate = NSPredicate(format: "title CONTAINS[cd] %@", searchBar.text!)
-        
-//        let sortDescriptor = NSSortDescriptor(key: "title", ascending: true)
-//        request.sortDescriptors = [sortDescriptor]
-        
-        request.sortDescriptors = [NSSortDescriptor(key: "title", ascending: true)]
-        loadItems(with: request, predicate: predicate)
-        
-        //do not copy paste, and repeat code, create method
-//        do {
-//            itemArray = try context.fetch(request) //we know it will be array of items
-//        }
-//        catch {
-//            print("Error fetching data: \(error)")
-//        }
+//extension ToDoListViewController: UISearchBarDelegate {
 //
-//        tableView.reloadData()
-    }
-    
-    func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
-        //called all time text changes
-        
-        //when entire text is cleared, show all items, our keyboard should go away not stay there
-        if searchBar.text?.count == 0 {
-            loadItems()
-            
-            //determines who'll have the priority, which process, manages, assign this project to different thread
-            //update your UI in main thread, keyboard goes away, because this code is ran in foreground
-            DispatchQueue.main.async {
-                
-                //remove keyboard, it shouldn't be selected, and keyboard should go away
-                searchBar.resignFirstResponder()
-            }
-            
-        }
-    }
-}
+//    //when user clicks on search, this method wil be called
+//    func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
+//        let request : NSFetchRequest<Item> = Item.fetchRequest()
+//
+//        print(searchBar.text!)
+//
+//        //used to query, it is a part of foundation, [cd] for dicratic, like bar in the top, or colon in the top of letters
+////        let predicate = NSPredicate(format: "title CONTAINS[cd] %@", searchBar.text!)
+////        request.predicate = predicate
+//
+//         let predicate = NSPredicate(format: "title CONTAINS[cd] %@", searchBar.text!)
+//
+////        let sortDescriptor = NSSortDescriptor(key: "title", ascending: true)
+////        request.sortDescriptors = [sortDescriptor]
+//
+//        request.sortDescriptors = [NSSortDescriptor(key: "title", ascending: true)]
+//        loadItems(with: request, predicate: predicate)
+//
+//        //do not copy paste, and repeat code, create method
+////        do {
+////            itemArray = try context.fetch(request) //we know it will be array of items
+////        }
+////        catch {
+////            print("Error fetching data: \(error)")
+////        }
+////
+////        tableView.reloadData()
+//    }
+//
+//    func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
+//        //called all time text changes
+//
+//        //when entire text is cleared, show all items, our keyboard should go away not stay there
+//        if searchBar.text?.count == 0 {
+//            loadItems()
+//
+//            //determines who'll have the priority, which process, manages, assign this project to different thread
+//            //update your UI in main thread, keyboard goes away, because this code is ran in foreground
+//            DispatchQueue.main.async {
+//
+//                //remove keyboard, it shouldn't be selected, and keyboard should go away
+//                searchBar.resignFirstResponder()
+//            }
+//
+//        }
+//    }
+//}
