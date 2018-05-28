@@ -167,6 +167,7 @@ class ToDoListViewController: UITableViewController {
                     try self.realm.write {
                         let newItem = Item()
                         newItem.title = textField.text!
+                        newItem.dateCreated = Date()
                         currentCategory.items.append(newItem)
                         //realm.add(newItem) - there's nothing to add here, we added to categories, that's it, realm already tracked and added by itself
                     }
@@ -238,52 +239,34 @@ class ToDoListViewController: UITableViewController {
 //helps to split functionality with all of this implementation, because overtime they will increase
 //MVC controllers increase very long, so better to modular well. So separate, needed core functionality of application from addons like search
 //we are extending functionality by search
-//extension ToDoListViewController: UISearchBarDelegate {
-//
-//    //when user clicks on search, this method wil be called
-//    func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
-//        let request : NSFetchRequest<Item> = Item.fetchRequest()
-//
-//        print(searchBar.text!)
-//
-//        //used to query, it is a part of foundation, [cd] for dicratic, like bar in the top, or colon in the top of letters
-////        let predicate = NSPredicate(format: "title CONTAINS[cd] %@", searchBar.text!)
-////        request.predicate = predicate
-//
-//         let predicate = NSPredicate(format: "title CONTAINS[cd] %@", searchBar.text!)
-//
-////        let sortDescriptor = NSSortDescriptor(key: "title", ascending: true)
-////        request.sortDescriptors = [sortDescriptor]
-//
-//        request.sortDescriptors = [NSSortDescriptor(key: "title", ascending: true)]
-//        loadItems(with: request, predicate: predicate)
-//
-//        //do not copy paste, and repeat code, create method
-////        do {
-////            itemArray = try context.fetch(request) //we know it will be array of items
-////        }
-////        catch {
-////            print("Error fetching data: \(error)")
-////        }
-////
-////        tableView.reloadData()
-//    }
-//
-//    func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
-//        //called all time text changes
-//
-//        //when entire text is cleared, show all items, our keyboard should go away not stay there
-//        if searchBar.text?.count == 0 {
-//            loadItems()
-//
-//            //determines who'll have the priority, which process, manages, assign this project to different thread
-//            //update your UI in main thread, keyboard goes away, because this code is ran in foreground
-//            DispatchQueue.main.async {
-//
-//                //remove keyboard, it shouldn't be selected, and keyboard should go away
-//                searchBar.resignFirstResponder()
-//            }
-//
-//        }
-//    }
-//}
+extension ToDoListViewController: UISearchBarDelegate {
+
+    //when user clicks on search, this method wil be called
+    func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
+        //realm provides filter that takes in nspredicate
+//        toDoItems = toDoItems?.filter("title CONTAINS[cd] %@", searchBar.text).sorted(byKeyPath: "title", ascending: true)
+        
+        toDoItems = toDoItems?.filter("title CONTAINS[cd] %@", searchBar.text).sorted(byKeyPath: "dateCreated", ascending: false)
+        //no need to load, because we already loaded
+        
+        tableView.reloadData()
+    }
+    
+    func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
+        //called all time text changes
+
+        //when entire text is cleared, show all items, our keyboard should go away not stay there
+        if searchBar.text?.count == 0 {
+            loadItems()
+
+            //determines who'll have the priority, which process, manages, assign this project to different thread
+            //update your UI in main thread, keyboard goes away, because this code is ran in foreground
+            DispatchQueue.main.async {
+
+                //remove keyboard, it shouldn't be selected, and keyboard should go away
+                searchBar.resignFirstResponder()
+            }
+
+        }
+    }
+}
