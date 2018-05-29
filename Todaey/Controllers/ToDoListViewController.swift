@@ -75,45 +75,22 @@ class ToDoListViewController: SwipeTableViewController {
     //executed right before the view will show up on the screen, and after the navigation stack establist, and after viewdid is completed, this is different life cycle point
     override func viewWillAppear(_ animated: Bool) {
         
-        guard let navBar = navigationController?.navigationBar else {
-            fatalError("Navigation controller does not exist")
-        }
+        //this navigation controller controls, sets title of this view as categoryname
+        title = selectedCategory?.name
         
         //changed if let -> guard, and we are not expecting this to happen
         guard let colorHex = selectedCategory?.color else { fatalError() }
-            //do this only if navigationcontroller is not null, so use guard
-            
-        //this navigation controller controls, sets title of this view as categoryname
-        title = selectedCategory?.name
-            
-        //let navBarColor = FlatWhite() - just to test contrast color
+        //do this only if navigationcontroller is not null, so use guard
         
-        //changed if let -> guard let to avoif 'if let' pyramid
-        //not expecting this to happen, so guard against it
-        guard let navBarColor =  UIColor(hexString: colorHex) else { fatalError() }
-                
-        navBar.barTintColor = navBarColor
-        navBar.tintColor = ContrastColorOf(navBarColor, returnFlat: true)
-        //nasattr. is like enum, large because that's what we use,
-        navBar.largeTitleTextAttributes = [NSAttributedStringKey.foregroundColor : ContrastColorOf(navBarColor, returnFlat: true)]
-        
-        searchBar.tintColor = navBarColor
-        
+        updateNavBar(withHexCode: colorHex)
         
     }
     
     //called just before the view will disapper from UI, just before the view will be removed from the stack
     //used to remove settings of this items view, so that category view won't have this color in nav bar
     override func viewWillDisappear(_ animated: Bool) {
-        
-        //if not valid hex, then it will be nil, we guard against it, and fatal error thrown
-        guard let originalColor = UIColor(hexString: "1D9BF6") else {
-            fatalError()
-        }
-        
-        navigationController?.navigationBar.barTintColor = originalColor
-        navigationController?.navigationBar.tintColor = FlatWhite()
-        navigationController?.navigationBar.largeTitleTextAttributes = [NSAttributedStringKey.foregroundColor : FlatWhite()]
+       
+      updateNavBar(withHexCode: "1D9BF6")
     }
     
     override func didReceiveMemoryWarning() {
@@ -337,6 +314,28 @@ class ToDoListViewController: SwipeTableViewController {
         
         //needed because it didn't refresh grid after search
         tableView.reloadData()
+    }
+    
+    //navbar setup code
+    func updateNavBar(withHexCode colorHexCode : String) {
+        
+        
+        guard let navBar = navigationController?.navigationBar else {
+            fatalError("Navigation controller does not exist")
+        }
+        
+        //let navBarColor = FlatWhite() - just to test contrast color
+        
+        //changed if let -> guard let to avoif 'if let' pyramid
+        //not expecting this to happen, so guard against it
+        guard let navBarColor =  UIColor(hexString: colorHexCode) else { fatalError() }
+        
+        navBar.barTintColor = navBarColor
+        navBar.tintColor = ContrastColorOf(navBarColor, returnFlat: true)
+        //nasattr. is like enum, large because that's what we use,
+        navBar.largeTitleTextAttributes = [NSAttributedStringKey.foregroundColor : ContrastColorOf(navBarColor, returnFlat: true)]
+        
+        searchBar.tintColor = navBarColor
     }
 }
 

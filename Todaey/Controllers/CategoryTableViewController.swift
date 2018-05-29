@@ -73,7 +73,7 @@ class CategoryTableViewController: SwipeTableViewController {
 //        }
         
         cell.backgroundColor = UIColor(hexString: categoryArray?[indexPath.row].color ?? "1D9BF6")
-        
+//        cell.textLabel?.textColor = ContrastColorOf(UIColor(hexString: Category.color), returnFlat: <#T##Bool#>)
         
         //comes from chameleon framework, changes back color
         //cell.backgroundColor = UIColor.randomFlat //UIColor.randomFlat.hexValue() - save this hexvalue using realm, to save persist colors that were before app terminates, so re-open app in same colors, so persist colors of every-cell, save hex string, we can't store UIColor, so need hex string, because it is a standard value type, when you add you get different color, save that color into databse, because we want to maintain
