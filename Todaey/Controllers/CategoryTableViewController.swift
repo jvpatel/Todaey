@@ -8,6 +8,7 @@
 
 import UIKit
 import RealmSwift
+import ChameleonFramework
 
 //get rid of all swipe code from here
 class CategoryTableViewController: SwipeTableViewController {
@@ -23,6 +24,8 @@ class CategoryTableViewController: SwipeTableViewController {
         //tableView.rowHeight = 80.0
         
         loadCategories()
+        
+        tableView.separatorStyle = .none
         
         // Uncomment the following line to preserve selection between presentations
         // self.clearsSelectionOnViewWillAppear = false
@@ -59,6 +62,23 @@ class CategoryTableViewController: SwipeTableViewController {
         
         //cat[] changed to cat?[] meaning get value only if it is not nil
         cell.textLabel?.text = categoryArray?[indexPath.row].name ?? "No Categories Added" //every cell has label, current row of current indexpath
+        
+//        if let category = categoryArray?[indexPath.row]
+//        {
+//            //cat[] changed to cat?[] meaning get value only if it is not nil
+//            cell.textLabel?.text = categoryArray?[indexPath.row].name ?? "No Categories Added" //every cell has label, current row of current indexpath
+//
+//            cell.backgroundColor = UIColor(hexString: category.color ?? "1D9BF6")
+//
+//        }
+        
+        cell.backgroundColor = UIColor(hexString: categoryArray?[indexPath.row].color ?? "1D9BF6")
+        
+        
+        //comes from chameleon framework, changes back color
+        //cell.backgroundColor = UIColor.randomFlat //UIColor.randomFlat.hexValue() - save this hexvalue using realm, to save persist colors that were before app terminates, so re-open app in same colors, so persist colors of every-cell, save hex string, we can't store UIColor, so need hex string, because it is a standard value type, when you add you get different color, save that color into databse, because we want to maintain
+        
+        //UIColor(hexString: <#T##String#>)
         
         //remove all swipe stuff
         //cell.delegate = self
@@ -127,6 +147,7 @@ class CategoryTableViewController: SwipeTableViewController {
             let newCategory = Category()
             
             newCategory.name = textField.text!
+            newCategory.color = UIColor.randomFlat.hexValue() //this value will be saved with category
             
             //self, because we are in closure
             //not needed because category list of realm is auto-updating, it will update database by itself, and automanage for tracking

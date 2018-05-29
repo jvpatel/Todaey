@@ -8,6 +8,7 @@
 
 import UIKit
 import RealmSwift
+import ChameleonFramework
 
 class ToDoListViewController: SwipeTableViewController {
 
@@ -27,6 +28,22 @@ class ToDoListViewController: SwipeTableViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        
+        tableView.separatorStyle = .none
+        
+        //can't do here - use viewwillappear
+//        if let colorHex = selectedCategory?.color {
+//            //do this only if navigationcontroller is not null, so use guard
+//
+//            guard let navBar = navigationController?.navigationBar.barTintColor = UIColor(hexString: colorHex) else {
+//                //app crashes here, we know vie loaded, but currrent controller isn't loaded into navigation controller, because view loaded but not yet inserted in navigation controller, may be not in navigation stack, this method called before navigation property is updated
+//                //we can catch this ones in testing, while user don't know what it is
+//                fatalError("Navigation controller does not exist")
+//            }
+//        }
+        
+        
+        
         // Do any additional setup after loading the view, typically from a nib.
         
         //path to the documents folder, FileManager provides interface to filesystem, default filemanger is singleton
@@ -55,6 +72,35 @@ class ToDoListViewController: SwipeTableViewController {
 //        }
    }
 
+    //executed right before the view will show up on the screen, and after the navigation stack establist, and after viewdid is completed, this is different life cycle point
+    override func viewWillAppear(_ animated: Bool) {
+        
+        //this navigation controller controls, sets title of this view as categoryname
+        title = selectedCategory!.name
+        
+        if let colorHex = selectedCategory?.color {
+            //do this only if navigationcontroller is not null, so use guard
+            
+            guard let navBar = navigationController?.navigationBar else {
+                fatalError("Navigation controller does not exist")
+            }
+            
+            //let navBarColor = FlatWhite() - just to test contrast color
+            
+            if let navBarColor =  UIColor(hexString: colorHex) {
+                
+                navBar.barTintColor = navBarColor
+                navBar.tintColor = ContrastColorOf(navBarColor, returnFlat: true)
+                //nasattr. is like enum, large because that's what we use,
+                navBar.largeTitleTextAttributes = [NSAttributedStringKey.foregroundColor : ContrastColorOf(navBarColor, returnFlat: true)]
+                
+                searchBar.tintColor = navBarColor
+            }
+            
+            
+        }
+    }
+    
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
         // Dispose of any resources that can be recreated.
@@ -88,6 +134,20 @@ class ToDoListViewController: SwipeTableViewController {
             cell.textLabel?.text = item.title //every cell has label, current row of current indexpath
             cell.accessoryType = (item.done) ? .checkmark : .none
             
+            //FlatSkyBlue: has white text color, try FlatWhite-> it will have black text color
+            //if let color = UIColor(hexString: selectedCategory!.color).darken(byPercentage:
+            //selected category safe to unwrap, make it optional chaining for UIcolor, we added '?' it for optional chaining didn't existed
+            if let color = UIColor(hexString: selectedCategory!.color)?.darken(byPercentage:
+                //darken depending on current row number and total number of items, we know it will be never null here
+                //CGFloat(indexPath.row/toDoItems!.count)
+                CGFloat(indexPath.row)/CGFloat(toDoItems!.count)
+                ) {
+                cell.backgroundColor = color
+                cell.textLabel?.textColor = ContrastColorOf(color, returnFlat: true)
+            }
+            
+            //print("version 1: \(CGFloat(indexPath.row/toDoItems!.count))") //o.o (whole number/wholenumber=wholenumber, and wholenumber is what gets converted into float
+            //print("version 2: \(CGFloat(indexPath.row)/CGFloat(toDoItems!.count))") //0/333
         } else {
             cell.textLabel?.text = "No items added"
         }
@@ -233,6 +293,11 @@ class ToDoListViewController: SwipeTableViewController {
             }
         }
     }
+    
+    //MARK: - Outlets
+    
+    @IBOutlet weak var searchBar: UISearchBar!
+    
     
     //MARK: - Supporting methods
     
